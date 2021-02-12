@@ -1,0 +1,167 @@
+#+title: Radar-Tech : Guide éditeur
+#+created: [2021-02-09 Tue]
+#+last_modified: [2021-02-12 Fri 10:57]
+
+* Édition du questionnaire
+
+** ~src/components/questionnaire.js~
+
+*** Remarques générales
+
+- L’ajout et la suppression de question doit impérativement être reflété dans les schemata (cf. [[*Mise à jour des schemata][Mise à jour des schemata]] plus bas).
+- Les variables à modifier dans les exemples sont précédées d’un ~$~.
+- Attention à ne pas oublier les virgules après chaque élément.
+
+*** Éléments complexes (pour structurer le document)
+
+**** Page : ~page~
+#+begin_src js
+{
+    "name":"$page_number",
+    "title":"$page_title",
+    "elements":[
+        // Any element
+    ]
+}
+#+end_src
+
+*** Éléments atomiques
+
+**** Prompt : ~text~
+#+begin_src js
+{
+    "type":"text",
+    "name":"$name",
+    "title":"$title",
+    // OPTIONAL: Question is required for proceeding
+    "isRequired":true,
+    // OPTIONAL: Validators, e.g.:
+    "validators":[
+        {
+            "type":"numeric",
+            "minValue":0,
+            "maxValue":99
+        }
+    ]
+}
+#+end_src
+
+**** Choix unique : ~radiogroup~
+#+begin_src js
+{
+    "type":"radiogroup",
+    "name":"$name",
+    "title":"$title",
+    "choices":[
+        "$choice1",
+        "$choice2",
+        …
+    ],
+    // OPTIONAL: Number of columns
+    "colCount":2,
+    // OPTIONAL: Prompt if none of the choices is possible
+    "hasOther":true,
+    // OPTIONAL: Question is required for proceeding
+    "isRequired":true,
+    // OPTIONAL: Visible if other named cell has a given value
+    "visibleIf":"{$other_cell_name}= '$other_cell_value'"
+},
+#+end_src
+
+**** Choix unique en menu : ~dropdown~
+#+begin_src js
+{
+    "type":"dropdown",
+    "name":"$name",
+    "title":"$title",
+    "choices":[
+        "$choice1",
+        "$choice2",
+        …
+    ],
+    // OPTIONAL: Prompt if none of the choices is possible
+    "hasOther":true,
+    // OPTIONAL: Question is required for proceeding
+    "isRequired":true,
+    // OPTIONAL: Visible if other named cell has a given value
+    "visibleIf":"{$other_cell_name}= '$other_cell_value'"
+}
+#+end_src
+
+**** Choix multiple : ~checkbox~
+#+begin_src js
+{
+    "type":"checkbox",
+    "name":"$name",
+    "title":"$title",
+    "choices":[
+        "$choice1",
+        "$choice2",
+        …
+    ],
+    // OPTIONAL: Number of columns
+    "colCount":2,
+    // OPTIONAL: Prompt if none of the choices is possible
+    "hasOther":true,
+    // OPTIONAL: Question is required for proceeding
+    "isRequired":true,
+    // OPTIONAL: Visible if other named cell has a given value
+    "visibleIf":"{$other_cell_name}= '$other_cell_value'"
+}
+#+end_src
+
+*** Éléments pseudo-atomiques (pour gérer plus finement le format du document avec les conditions)
+
+**** Panel facultatif : ~panel~
+Ce élément complexe permet d’indenter une région
+#+begin_src js
+{
+    "type":"panel",
+    "innerIndent":1,
+    "name":"$main_cell_name_panel", // Suggested name
+    "elements":[
+        // Any element type, e.g.:
+        {
+            "type":"text",
+            "name":"$main_cell_name_sub_value",
+            "title":"$title",   // e.g. ‘Describe’
+            // Include the condition here; if a panel is empty, it is not displayed
+            "visibleIf":"{$main_cell_name} = '$main_cell_value"
+        },
+    ],
+}
+#+end_src
+
+
+* Mise à jour des schemata
+
+Dans chaque fichier, il faut s’assurer que les tableaux prévus par le questionnaire soient présents dans les schemata.
+
+** Sur le front
+
+*** ~src/components/utils/validators.js~
+
+Validateur (yup) pour s’assurer de la cohérence entre le questionnaire et la base.
+
+Exemples :
+#+begin_src js
+// Pour une question à choix unique
+foo: yup.string()
+// OR
+bar: yup.number()
+
+// Pour une question à choix multiple
+foo: yup.array().of(yup.string())
+// OR
+bar: yup.array().of(yup.(number))
+#+end_src
+
+** Sur le back
+
+*** ~src/mongoSchema.js~
+
+Schema de la base.
+
+*** ~src/graphqlSchema.js~
+
+Schema de GraphQL (notamment pour avoir l’auto-complétion).
